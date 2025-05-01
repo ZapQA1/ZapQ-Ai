@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ZapQ AI</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 50px auto; text-align: center; }
+    input, button { margin: 10px; padding: 10px; width: 90%; }
+    #response { margin-top: 20px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>ZapQ - Ask with a Picture</h1>
+
+  <input type="text" id="username" placeholder="Username" />
+  <input type="password" id="password" placeholder="Password" />
+  <button onclick="signup()">Sign Up</button>
+  <button onclick="login()">Log In</button>
+
+  <br /><br />
+  <input type="file" id="imageInput" accept="image/*" />
+  <button onclick="submitImage()">Send Image to AI</button>
+
+  <div id="response"></div>
+
+  <script>
+    let token = "";
+
+    async function signup() {
+      const res = await fetch("http://localhost:3000/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value
+        })
+      });
+      const data = await res.json();
+      alert(data.message);
+    }
+
+    async function login() {
+      const res = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value
+        })
+      });
+      const data = await res.json();
+      if (data.token) {
+        token = data.token;
+        alert("Login successful!");
+      } else {
+        alert("Login failed.");
+      }
+    }
+
+    async function submitImage() {
+      if (!token) {
+        alert("Please log in first.");
+        return;
+      }
+      const input = document.getElementById("imageInput");
+      if (!input.files[0]) {
+        alert("Please choose an image.");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("image", input.files[0]);
+
+      const res = await fetch("http://localhost:3000/upload", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + token },
+        body: formData
+      });
+
+      const data = await res.json();
+      document.getElementById("response").innerText = data.response || "Something went wrong.";
+    }
+  </script>
+</body>
+</html>
